@@ -1,0 +1,355 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Collections | Photoglass Premium</title>
+    <link rel="icon" type="image/png" href="{% static 'images/favglass.png' %}">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --dark: #0a0a0a;
+            --primary-blue: #5956e1;
+            --accent-gold: #b38e44;
+            --border: #eeeeee;
+            --soft-bg: #f8fafc;
+            --card-dark: #27272e;
+            --abstrak-purple: #5956e1;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fff; color: var(--dark); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        html { scroll-behavior: smooth; }
+
+        /* --- NAVIGATION --- */
+        header { background: #fff; position: sticky; top: 0; z-index: 9999; border-bottom: 1px solid var(--border); }
+        .nav-container { display: flex; justify-content: space-between; align-items: center; padding: 12px 5%; max-width: 1600px; margin: auto; }
+        .brand-logo { height: 38px; width: auto; }
+
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--dark);
+            order: 3;
+        }
+
+        nav ul { display: flex; list-style: none; gap: 30px; margin: 0; padding: 0; }
+        nav ul li { position: relative; }
+        nav a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; padding: 20px 0; display: inline-block; transition: 0.3s; }
+        nav a:hover { color: var(--abstrak-purple); }
+
+        /* DROPDOWN STYLE */
+        .dropdown {
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #ffffff; min-width: 220px; box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            border-radius: 15px; padding: 15px 0; opacity: 0; visibility: hidden; transition: all 0.4s ease; z-index: 1100;
+        }
+        nav ul li:hover .dropdown { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .dropdown a { display: block; padding: 12px 25px; color: #666; text-transform: none; font-size: 14px; font-weight: 500; letter-spacing: 0; transition: 0.3s; }
+        .dropdown a:hover { background: #f8f9ff; color: var(--abstrak-purple); padding-left: 30px; }
+
+        .user-actions { display: flex; gap: 15px; align-items: center; }
+        .action-icon { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #f8f8f8; color: var(--dark); text-decoration: none; transition: 0.3s; font-size: 18px; }
+        .action-icon:hover { background: var(--abstrak-purple); color: white; transform: translateY(-3px); }
+
+        /* --- HERO --- */
+        .hero-section { width: 100%; padding: 0 20px; margin-top: 20px; }
+        .hero-viewport { position: relative; width: 100%; height: 30vh; min-height: 250px; background-color: #111; border-radius: 60px; overflow: hidden; display: flex; align-items: center; }
+        .hero-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.8; }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, transparent 100%); z-index: 2; }
+        .hero-content { position: relative; z-index: 10; padding: 0 10%; color: white; max-width: 900px; }
+        .hero-content h1 { font-size: clamp(30px, 6vw, 45px); margin: 0; font-weight: 800; line-height: 1.1; font-family: 'Playfair Display', serif; }
+
+        /* --- COLLECTION SECTIONS --- */
+        .section-title { font-family: 'Playfair Display', serif; font-size: 32px; margin: 60px 5% 30px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .collection-section { max-width: 1400px; margin: 0 auto 60px; padding: 0 5%; scroll-margin-top: 100px; }
+        .collection-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 40px; }
+        .collection-card { background: #fff; border-radius: 25px; padding: 25px; text-align: center; transition: 0.4s; border: 1px solid transparent; }
+        .collection-card:hover { transform: translateY(-10px); border: 1px solid var(--border); box-shadow: 0 15px 35px rgba(0,0,0,0.05); }
+        .img-container { width: 100%; aspect-ratio: 1/1; border-radius: 20px; overflow: hidden; background: #f9f9f9; margin-bottom: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .img-container img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .collection-card:hover .img-container img { transform: scale(1.08); }
+
+        .col-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; margin: 10px 0 5px; color: #333; }
+        .col-price { font-size: 18px; font-weight: 800; color: #000; margin-bottom: 15px; }
+
+        .btn-personalize {
+            background: none; border: none; font-size: 11px; font-weight: 800;
+            text-transform: uppercase; color: #000; text-decoration: none;
+            border-bottom: 2px solid #000; padding-bottom: 4px; transition: 0.3s; cursor: pointer;
+        }
+        .btn-personalize:hover { color: var(--primary-blue); border-color: var(--primary-blue); }
+
+        /* --- FOOTER --- */
+        footer { background: #fff; padding: 80px 5% 40px; color: var(--dark); border-top: 1px solid var(--border); }
+        .footer-social-strip { display: flex; justify-content: space-between; align-items: center; padding-bottom: 60px; flex-wrap: wrap; gap: 20px; }
+        .footer-social-strip a { color: #999; font-size: 20px; transition: 0.3s; text-decoration: none; }
+        .footer-social-strip a:hover { color: var(--abstrak-purple); }
+        .footer-main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr; gap: 40px; max-width: 1400px; margin: auto; }
+        .footer-cta h2 { font-size: 48px; font-weight: 800; margin: 0 0 20px 0; letter-spacing: -1px; }
+        .footer-cta p { color: #777; font-size: 15px; line-height: 1.6; margin-bottom: 30px; max-width: 400px; }
+        .footer-links-col h4 { font-size: 18px; font-weight: 700; margin: 0 0 25px 0; color: var(--dark); }
+        .footer-links-col ul { list-style: none; padding: 0; margin: 0; }
+        .footer-links-col ul li { margin-bottom: 12px; }
+        .footer-links-col ul li a { text-decoration: none; color: #777; font-size: 15px; transition: 0.3s; }
+        .footer-links-col ul li a:hover { color: var(--abstrak-purple); padding-left: 5px; }
+        .footer-bottom-line { margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #999; }
+        .back-to-top { width: 45px; height: 45px; background: var(--abstrak-purple); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; text-decoration: none; transition: 0.3s; }
+
+        /* --- MOBILE OPTIMIZATIONS --- */
+        @media (max-width: 992px) {
+            .mobile-toggle { display: block; }
+            nav {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 280px;
+                height: 100vh;
+                background: #fff;
+                z-index: 2000;
+                padding: 80px 30px;
+                box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+                transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            nav.active { right: 0; }
+            nav ul { flex-direction: column; gap: 10px; }
+            nav a { font-size: 16px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; width: 100%; }
+            .dropdown { position: static; opacity: 1; visibility: visible; transform: none; box-shadow: none; display: none; padding-left: 15px; }
+            nav ul li:hover .dropdown { display: block; }
+
+            .hero-viewport { border-radius: 30px; height: 35vh; }
+            .hero-content { padding: 0 5%; text-align: center; }
+            .hero-content h1 { font-size: 32px; }
+
+            .section-title { font-size: 26px; text-align: center; }
+            .collection-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+            .collection-card { padding: 15px; }
+            .col-title { font-size: 16px; }
+            .col-price { font-size: 15px; }
+
+            .footer-main-grid { grid-template-columns: 1fr 1fr; }
+            .footer-cta { grid-column: span 2; }
+            .footer-cta h2 { font-size: 36px; }
+        }
+
+        @media (max-width: 600px) {
+            .footer-main-grid { grid-template-columns: 1fr; }
+            .footer-cta { grid-column: span 1; }
+            .footer-bottom-line { flex-direction: column; gap: 20px; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="nav-container">
+        <a href="{% url 'index' %}"><img src="{% static 'images/photo2glass.jpg' %}" class="brand-logo" alt="Logo"></a>
+
+        <nav id="sidebarNav">
+            <ul>
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li>
+                    <a href="javascript:void(0);">Personalization <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 5px;"></i></a>
+                    <div class="dropdown">
+                         {% for category in categories %}
+                        <a href="{% url 'index' %}#category-{{ category.id }}">{{ category.name }}</a>
+                        {% endfor %}
+                    </div>
+                </li>
+                <li>
+                    <a href="javascript:void(0);">Collections <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 5px;"></i></a>
+                    <div class="dropdown">
+                        <!-- <a href="#all-collections">All Collections</a> -->
+                        <a href="#landscape">Landscape</a>
+                        <a href="#abstract">Modern & Abstract Arts</a>
+                        <a href="#wildlife">Natural and wildlife</a>
+                        <a href="#religious">Religious and spiritual</a>
+                    </div>
+                </li>
+                <li><a href="{% url 'accessories' %}">Accessories</a></li>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </nav>
+
+        <div class="user-actions">
+            <a href="{% url 'my_account' %}" class="action-icon"><i class="fa-regular fa-user"></i></a>
+            <a href="/cart/" class="action-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+            <button class="mobile-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <section class="hero-section">
+        <div class="hero-viewport">
+            <img src="{% static 'images/WhatsApp Image 2026-03-20 at 12.16.35 PM.jpeg' %}" class="hero-bg-image" alt="Banner">
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <h1>Our Premium<br>Collections.</h1>
+            </div>
+        </div>
+    </section>
+
+    <!-- <h2 class="section-title" id="all-collections">All Collections</h2>
+    <section class="collection-section">
+        <div class="collection-grid">
+            {% for col in collections %}
+            <div class="collection-card">
+                <div class="img-container">
+                    <img src="{{ col.cover_image.url }}" alt="{{ col.title }}">
+                </div>
+                <h3 class="col-title">{{ col.title }}</h3>
+                <p class="col-price">Rs.{{ col.price }}</p>
+                <form action="/cart/" method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="product_id" value="{{ col.id }}">
+                    <button type="submit" class="btn-personalize">Buy Now</button>
+                </form>
+            </div>
+            {% endfor %}
+        </div>
+    </section> -->
+
+    <h2 class="section-title" id="landscape">Landscape</h2>
+    <section class="collection-section">
+        <div class="collection-grid">
+            {% for col in collections %}
+                {% if "landscape" in col.title|lower %}
+                <div class="collection-card">
+                    <div class="img-container">
+                        <img src="{{ col.cover_image.url }}" alt="{{ col.title }}">
+                    </div>
+                    <h3 class="col-title">{{ col.title }}</h3>
+                    <p class="col-price">Rs.{{ col.price }}</p>
+                    <button class="btn-personalize">Buy Now</button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <h2 class="section-title" id="abstract">Modern & Abstract Arts</h2>
+    <section class="collection-section">
+        <div class="collection-grid">
+            {% for col in collections %}
+                {% if "abstract" in col.title|lower or "modern" in col.title|lower %}
+                <div class="collection-card">
+                    <div class="img-container">
+                        <img src="{{ col.cover_image.url }}" alt="{{ col.title }}">
+                    </div>
+                    <h3 class="col-title">{{ col.title }}</h3>
+                    <p class="col-price">Rs.{{ col.price }}</p>
+                    <button class="btn-personalize">Buy Now</button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <h2 class="section-title" id="wildlife">Natural and wildlife</h2>
+    <section class="collection-section">
+        <div class="collection-grid">
+            {% for col in collections %}
+                {% if "wildlife" in col.title|lower or "natural" in col.title|lower %}
+                <div class="collection-card">
+                    <div class="img-container">
+                        <img src="{{ col.cover_image.url }}" alt="{{ col.title }}">
+                    </div>
+                    <h3 class="col-title">{{ col.title }}</h3>
+                    <p class="col-price">Rs.{{ col.price }}</p>
+                    <button class="btn-personalize">Buy Now</button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    <h2 class="section-title" id="religious">Religious and spiritual</h2>
+    <section class="collection-section">
+        <div class="collection-grid">
+            {% for col in collections %}
+                {% if "religious" in col.title|lower or "spiritual" in col.title|lower %}
+                <div class="collection-card">
+                    <div class="img-container">
+                        <img src="{{ col.cover_image.url }}" alt="{{ col.title }}">
+                    </div>
+                    <h3 class="col-title">{{ col.title }}</h3>
+                    <p class="col-price">Rs.{{ col.price }}</p>
+                    <button class="btn-personalize">Buy Now</button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div class="footer-social-strip">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+    </div>
+
+    <div class="footer-main-grid">
+        <div class="footer-cta">
+            <h2>Get in touch!</h2>
+            <p>Subscribe to our newsletter and stay updated with our latest glass plaque collections.</p>
+        </div>
+        <div class="footer-links-col">
+            <h4>Quick links</h4>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+        <div class="footer-links-col">
+            <h4>Support</h4>
+            <ul>
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms and conditions </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom-line">
+        <div>&copy; Copyright photo2glass. All rights reserved.</div>
+        <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i></a>
+    </div>
+</footer>
+
+<script>
+    // --- SIDEBAR TOGGLE ---
+    const menuBtn = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebarNav');
+
+    menuBtn.addEventListener('click', function() {
+        sidebar.classList.toggle('active');
+        const icon = menuBtn.querySelector('i');
+        if (sidebar.classList.contains('active')) {
+            icon.classList.replace('fa-bars', 'fa-xmark');
+        } else {
+            icon.classList.replace('fa-xmark', 'fa-bars');
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!sidebar.contains(e.target) && !menuBtn.contains(e.target)) {
+            sidebar.classList.remove('active');
+            if(menuBtn.querySelector('i').classList.contains('fa-xmark')){
+                menuBtn.querySelector('i').classList.replace('fa-xmark', 'fa-bars');
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
