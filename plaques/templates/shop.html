@@ -1,0 +1,589 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Configurator | Photoglass</title>
+    <link rel="icon" type="image/png" href="{% static 'images/favglass.png' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Dancing+Script:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        :root {
+            --dark: #0a0a0a;
+            --primary-blue: #2563eb;
+            --accent-green: #10b981;
+            --border: #eeeeee;
+            --soft-bg: #f8fafc;
+            --abstrak-purple: #5956e1;
+        }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fff; color: var(--dark); overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+
+        /* --- HEADER --- */
+        header {
+            background: #fff;
+            position: sticky; top: 0; z-index: 1000;
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-container {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 5%; max-width: 1600px; margin: auto;
+        }
+        .brand-logo { height: 38px; font-weight: 900; letter-spacing: 1px; color: #000; text-decoration: none; }
+
+        nav ul { display: flex; list-style: none; gap: 30px; margin: 0; padding: 0; }
+        nav a { text-decoration: none; color: var(--dark); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .user-actions { display: flex; gap: 20px; align-items: center; }
+        .user-actions a { color: var(--dark); text-decoration: none; font-size: 18px; }
+
+        .dropdown {
+            position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: #ffffff; min-width: 220px; box-shadow: 0 15px 50px rgba(0,0,0,0.1);
+            border-radius: 15px; padding: 15px 0; opacity: 0; visibility: hidden; transition: all 0.4s ease; z-index: 1100;
+        }
+        nav ul li:hover .dropdown { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+        .dropdown a { display: block; padding: 12px 25px; color: #666; text-transform: none; font-size: 14px; font-weight: 500; transition: 0.3s; }
+
+        .user-actions { display: flex; gap: 15px; align-items: center; }
+        .action-icon { width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #f8f8f8; color: var(--dark); text-decoration: none; transition: 0.3s; font-size: 18px; }
+        .action-icon:hover { background: var(--abstrak-purple); color: white; transform: translateY(-3px); }
+
+        /* --- HERO BANNER --- */
+        .hero-section { width: 100%; padding: 0 20px; margin-top: 20px; }
+        .hero-viewport {
+            position: relative; width: 100%; height: 30vh; min-height: 250px;
+            background-color: #111; border-radius: 60px; overflow: hidden;
+            display: flex; align-items: center;
+        }
+        .hero-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; opacity: 0.8; }
+        .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.6) 0%, transparent 100%); z-index: 2; }
+        .hero-content { position: relative; z-index: 10; padding: 0 10%; color: white; max-width: 900px; }
+        .hero-content h1 { font-size: clamp(34px, 6vw, 45px); margin: 0; font-weight: 800; line-height: 1.1; font-family: 'Playfair Display', serif; }
+        .hero-content p { font-size: 18px; margin-top: 15px; opacity: 0.9; }
+
+        /* --- WORKSPACE MOBILE OPTIMIZATION --- */
+        .config-main-wrapper {
+            background: #ffffff;
+            padding: 20px 5% 40px;
+            min-height: auto;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .studio-modal {
+            width: 100%; max-width: 1200px; height: auto;
+            background: #fff; border-radius: 24px;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border);
+        }
+
+        .modal-inner-header {
+            padding: 15px 30px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-inner-header h2 { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; margin: 0; color: #64748b; }
+        .price-display { font-size: 22px; font-weight: 800; color: var(--primary-blue); }
+
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            flex: 1;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .tabs-nav { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--border); }
+        .tab-btn {
+            padding: 15px 5px; border: none; background: #f8fafc; cursor: pointer;
+            font-size: 10px; font-weight: 700; text-transform: uppercase; color: #94a3b8;
+            transition: 0.2s;
+        }
+        .tab-btn i { display: block; font-size: 16px; margin-bottom: 5px; }
+        .tab-btn.active { background: #fff; color: var(--primary-blue); border-bottom: 2px solid var(--primary-blue); }
+
+        .sidebar-content { flex: 1; padding: 25px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .control-label { font-size: 11px; font-weight: 800; text-transform: uppercase; color: #94a3b8; margin: 20px 0 10px; display: block; letter-spacing: 0.5px; }
+        .control-label:first-child { margin-top: 0; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .opt-card {
+            padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; text-align: center;
+            font-size: 12px; cursor: pointer; transition: 0.2s; background: #fff; color: #475569;
+        }
+        .opt-card.active { border-color: var(--primary-blue); background: #eff6ff; color: var(--primary-blue); font-weight: 600; box-shadow: 0 0 0 1px var(--primary-blue); }
+
+        .form-select, .text-area { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-family: inherit; margin-bottom: 15px; outline: none; }
+
+        /* --- PREVIEW STAGE --- */
+        .preview-pane {
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 40px 20px;
+        }
+
+        #stage-container {
+            width: 100%;
+            max-width: 400px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #stage {
+            background: #000; position: relative;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15);
+            overflow: hidden;
+            transition: 0.3s ease;
+        }
+
+        .layer-base { width: 100%; height: 100%; object-fit: cover; position: absolute; z-index: 1; }
+        .layer-photo { position: absolute; z-index: 2; cursor: move; touch-action: none; }
+        .layer-text { position: absolute; z-index: 3; cursor: move; text-align: center; white-space: pre-wrap; padding: 5px; }
+
+        .footer-action { padding: 20px; border-top: 1px solid var(--border); }
+        .btn-add-basket {
+            width: 100%; background: var(--accent-green); color: #fff; border: none;
+            padding: 18px; border-radius: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer;
+        }
+
+        .color-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-bottom: 15px; }
+        .dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .dot.active { border-color: var(--primary-blue); transform: scale(1.1); }
+        input[type="range"] { width: 100%; accent-color: var(--primary-blue); margin: 10px 0; }
+
+       /* --- FOOTER --- */
+        footer { background: #fff; padding: 80px 5% 40px; color: var(--dark); border-top: 1px solid var(--border); }
+        .footer-social-strip { display: flex; justify-content: space-between; align-items: center; padding-bottom: 60px; flex-wrap: wrap; gap: 20px; }
+        .footer-social-strip a { color: #999; font-size: 20px; transition: 0.3s; text-decoration: none; }
+        .footer-social-strip a:hover { color: var(--abstrak-purple); }
+        .footer-main-grid { display: grid; grid-template-columns: 1.2fr 0.8fr 0.8fr 0.8fr; gap: 40px; max-width: 1400px; margin: auto; }
+        .footer-cta h2 { font-size: 48px; font-weight: 800; margin: 0 0 20px 0; letter-spacing: -1px; }
+        .footer-cta p { color: #777; font-size: 15px; line-height: 1.6; margin-bottom: 30px; max-width: 400px; }
+        .footer-links-col h4 { font-size: 18px; font-weight: 700; margin: 0 0 25px 0; color: var(--dark); }
+        .footer-links-col ul { list-style: none; padding: 0; margin: 0; }
+        .footer-links-col ul li { margin-bottom: 12px; }
+        .footer-links-col ul li a { text-decoration: none; color: #777; font-size: 15px; transition: 0.3s; }
+        .footer-links-col ul li a:hover { color: var(--abstrak-purple); padding-left: 5px; }
+        .footer-bottom-line { margin-top: 80px; padding-top: 30px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #999; }
+        .back-to-top { width: 45px; height: 45px; background: var(--abstrak-purple); color: white; display: flex; align-items: center; justify-content: center; border-radius: 50%; text-decoration: none; transition: 0.3s; }
+
+        /* --- MOBILE MEDIA QUERIES --- */
+        @media (max-width: 932px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                border-right: none;
+                order: 2;
+            }
+            .preview-pane {
+                order: 1;
+                width: 100%;
+                overflow: hidden;
+            }
+            .hero-viewport { border-radius: 30px; height: 25vh; }
+            .hero-content h1 { font-size: 28px; }
+            .nav-container { padding: 10px 5%; }
+            .studio-modal { border-radius: 0; box-shadow: none; border: none; }
+            header { position: sticky; }
+            .sidebar-content { overflow-y: visible; }
+        }
+
+        @media (max-width: 480px) {
+            .modal-inner-header { padding: 15px; }
+            .modal-inner-header h2 { font-size: 11px; }
+            .price-display { font-size: 18px; }
+            .footer-main-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+
+<header>
+    <div class="nav-container">
+        <a href="{% url 'index' %}"><img src="{% static 'images/photo2glass.jpg' %}" class="brand-logo" alt="Logo"></a>
+
+        <nav id="sidebarNav">
+            <ul>
+                <li><a href="{% url 'index' %}">Home</a></li>
+                <li>
+                    <a href="javascript:void(0);">Personalization  <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 5px;"></i></a>
+                    <div class="dropdown">
+                        {% for category in categories %}
+                        <a href="#">{{ category.name }}</a>
+                        {% endfor %}
+                    </div>
+                </li>
+                <li>
+                    <a href="{% url 'collections' %}">Collections <i class="fa-solid fa-chevron-down" style="font-size: 9px; margin-left: 5px;"></i></a>
+                    <div class="dropdown">
+                        <a href="{% url 'collections' %}">All Collections</a>
+                        <a href="{% url 'collections' %}?style=landscape">Landscape</a>
+                    </div>
+                </li>
+                <li><a href="{% url 'accessories' %}">Accessories</a></li>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </nav>
+
+        <div class="user-actions">
+            <a href="{% url 'my_account' %}" class="action-icon"><i class="fa-regular fa-user"></i></a>
+            <a href=/cart/" class="action-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+            <button class="mobile-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+        </div>
+    </div>
+</header>
+
+<section class="hero-section">
+    <div class="hero-viewport">
+        <img src="{% static 'images/WhatsApp Image 2026-03-20 at 12.16.35 PM.jpeg' %}" class="hero-bg-image" alt="Customization Banner">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Personalize Your<br>Masterpiece.</h1>
+        </div>
+    </div>
+</section>
+
+<main class="config-main-wrapper">
+    <div class="studio-modal">
+        <div class="modal-inner-header">
+            <h2>You Can Personalize Your Frames Here..</h2>
+            <div id="priceDisplay" class="price-display">Rs 0.00</div>
+        </div>
+
+        <div class="workspace-grid">
+            <aside class="sidebar">
+                <nav class="tabs-nav">
+                    <button class="tab-btn active" onclick="openTab(event, 'tab-structure')"><i class="fa fa-layer-group"></i>Structure</button>
+                    <button class="tab-btn" onclick="openTab(event, 'tab-portrait')"><i class="fa fa-camera"></i>Portrait</button>
+                    <button class="tab-btn" onclick="openTab(event, 'tab-text')"><i class="fa fa-pen-nib"></i>Inscription</button>
+                </nav>
+
+                <div class="sidebar-content">
+                    <div id="tab-structure" class="tab-pane active">
+                        <span class="control-label">1. Select Shape</span>
+                        <div class="options-grid">
+                            {% for s in shape %}
+                            <div class="opt-card shape-card" onclick="filterConfig('{{ s.id }}', this)">{{ s.name }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <span class="control-label">2. Dimensions</span>
+                        <select id="dimSelect" class="form-select" onchange="updateByDim()"></select>
+
+                        <span class="control-label">3. Material Build</span>
+                        <div class="options-grid">
+                            {% for m in materials %}
+                            <div class="opt-card mat-card" onclick="toggleActive(this, 'mat-card')">{{ m.name }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <span class="control-label">4. Glass Thickness</span>
+                        <div class="options-grid">
+                            {% for t in thickness %}
+                            <div class="opt-card thick-card" onclick="toggleActive(this, 'thick-card')">{{ t.size }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <span class="control-label">5. Available Stands</span>
+                        <div class="options-grid">
+                            {% for f in fastenings %}
+                            <div class="opt-card fast-card" onclick="toggleActive(this, 'fast-card')">{{ f.name }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div id="tab-portrait" class="tab-pane">
+                        <span class="control-label">Upload Photo</span>
+                        <div class="upload-area" style="border: 2px dashed #cbd5e1; padding: 40px; text-align: center; border-radius: 16px; cursor: pointer; background: #f8fafc;" onclick="document.getElementById('fileInp').click()">
+                            <i class="fa fa-cloud-upload" style="font-size: 32px; color: var(--primary-blue);"></i>
+                            <p style="font-size: 13px; font-weight: 500; margin-top: 15px;">Click to upload high-res photo</p>
+                        </div>
+                        <input type="file" id="fileInp" hidden onchange="handleUpload(event)">
+                    </div>
+
+                    <div id="tab-text" class="tab-pane">
+                        <span class="control-label">Message Content</span>
+                        <textarea id="textInp" class="text-area" placeholder="Write name or message..." oninput="updateText()"></textarea>
+
+                        <span class="control-label">Typography Style</span>
+                        <select id="fontFamily" class="form-select" onchange="updateText()">
+                            <option value="'Playfair Display', serif">Playfair Display</option>
+                            <option value="'Dancing Script', cursive">Dancing Script</option>
+                            <option value="'Montserrat', sans-serif">Montserrat Bold</option>
+                            <option value="'Inter', sans-serif">Modern Clean</option>
+                        </select>
+
+                        <span class="control-label">Engraving Color</span>
+                        <div class="color-row" id="colorPicker"></div>
+
+                        <span class="control-label">Size: <span id="szLab">24</span>px</span>
+                        <input type="range" id="textSize" min="10" max="80" value="24" oninput="updateText()">
+
+                        <span class="control-label">Rotation: <span id="rtLab">0</span>°</span>
+                        <input type="range" id="textRot" min="-180" max="180" value="0" oninput="updateText()">
+                    </div>
+                </div>
+
+                <div class="footer-action">
+                    <button id="addToCartBtn" class="btn-add-basket">Confirm Design</button>
+                </div>
+            </aside>
+
+            <main class="preview-pane">
+                <div id="stage-container">
+                    <div id="stage">
+                        <img id="baseImg" class="layer-base" src="" crossorigin="anonymous">
+                        <div id="photoLayer" class="layer-photo">
+                            <img id="userImg" src="" style="width:100%; height:100%;" crossorigin="anonymous">
+                        </div>
+                        <div id="textLayer" class="layer-text">Your Inscription</div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</main>
+<footer>
+    <div class="footer-social-strip">
+        <a href="#"><i class="fab fa-facebook-f"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+    </div>
+
+    <div class="footer-main-grid">
+        <div class="footer-cta">
+            <h2>Get in touch!</h2>
+            <p>Subscribe to our newsletter and stay updated with our latest glass plaque collections.</p>
+        </div>
+
+        <div class="footer-links-col">
+            <h4>Quick links</h4>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+                <li><a href="/contact">Contact</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-links-col">
+            <h4>Categories</h4>
+            <ul>
+                <li><a href="/categories">All Categories</a></li>
+            </ul>
+        </div>
+
+        <div class="footer-links-col">
+            <h4>Support</h4>
+            <ul>
+                <li><a href="/privacy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms and conditions </a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="footer-bottom-line">
+        <div>&copy; Copyright photo2glass. All rights reserved.</div>
+        <a href="#" class="back-to-top"><i class="fas fa-chevron-up"></i></a>
+    </div>
+</footer>
+
+
+<script>
+    const CONFIGS = JSON.parse('{{ config_json|escapejs }}');
+    let currentScale = 1;
+    let currentColor = "#ffffff";
+    let activeShapeId = null;
+    const colors = ["#000000", "#ffffff", "#b38e44", "#94a3b8", "#b91c1c", "#0369a1", "#166534"];
+
+    function initColors() {
+        const picker = document.getElementById('colorPicker');
+        picker.innerHTML = '';
+        colors.forEach(c => {
+            const d = document.createElement('div');
+            d.className = 'dot';
+            d.style.backgroundColor = c;
+            if(c==="#ffffff") d.style.border = "1px solid #ddd";
+            d.onclick = () => {
+                currentColor = c;
+                document.querySelectorAll('.dot').forEach(el => el.classList.remove('active'));
+                d.classList.add('active');
+                updateText();
+            };
+            picker.appendChild(d);
+        });
+    }
+
+    function openTab(e, id) {
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        e.currentTarget.classList.add('active');
+    }
+
+    function toggleActive(el, cls) {
+        document.querySelectorAll('.'+cls).forEach(x => x.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function filterConfig(id, el) {
+        activeShapeId = parseInt(id);
+        toggleActive(el, 'shape-card');
+        const filtered = CONFIGS.filter(c => c.shapes.includes(activeShapeId));
+        const select = document.getElementById('dimSelect');
+        select.innerHTML = filtered.map((c, i) => `<option value="${i}">${c.dimension.label}</option>`).join('');
+        if(filtered.length > 0) applyDesign(filtered[0]);
+    }
+
+    function updateByDim() {
+        const idx = document.getElementById('dimSelect').value;
+        const filtered = CONFIGS.filter(c => c.shapes.includes(activeShapeId));
+        applyDesign(filtered[idx]);
+    }
+
+    function applyDesign(config) {
+        document.getElementById('baseImg').src = config.base_image;
+        document.getElementById('priceDisplay').innerText = `₹${config.price}`;
+
+        const stage = document.getElementById('stage');
+        const maxBox = Math.min(window.innerWidth - 40, 350);
+        const w = config.dimension.w;
+        const h = config.dimension.h;
+
+        if (w >= h) {
+            stage.style.width = maxBox + "px";
+            stage.style.height = (maxBox * (h / w)) + "px";
+            currentScale = maxBox / 350;
+        } else {
+            stage.style.height = maxBox + "px";
+            stage.style.width = (maxBox * (w / h)) + "px";
+            currentScale = (maxBox * (w / h)) / 350;
+        }
+
+        const pl = document.getElementById('photoLayer');
+        pl.style.left = (config.image.x * currentScale) + "px";
+        pl.style.top = (config.image.y * currentScale) + "px";
+        pl.style.width = (config.image.w * currentScale) + "px";
+        pl.style.height = (config.image.h * currentScale) + "px";
+
+        if(!document.getElementById('userImg').getAttribute('data-up')) {
+            document.getElementById('userImg').src = config.portrait_sample;
+        }
+        updateText();
+    }
+
+    function updateText() {
+        const tl = document.getElementById('textLayer');
+        const sz = document.getElementById('textSize').value;
+        const rt = document.getElementById('textRot').value;
+
+        tl.innerText = document.getElementById('textInp').value || "Your Inscription";
+        tl.style.fontSize = (sz * currentScale) + "px";
+        tl.style.fontFamily = document.getElementById('fontFamily').value;
+        tl.style.color = currentColor;
+        tl.style.transform = `translate(${tl.getAttribute('data-x') || 0}px, ${tl.getAttribute('data-y') || 0}px) rotate(${rt}deg)`;
+
+        document.getElementById('szLab').innerText = sz;
+        document.getElementById('rtLab').innerText = rt;
+    }
+
+    function handleUpload(e) {
+        const r = new FileReader();
+        r.onload = (ev) => {
+            const img = document.getElementById('userImg');
+            img.src = ev.target.result;
+            img.setAttribute('data-up', 'true');
+        };
+        r.readAsDataURL(e.target.files[0]);
+    }
+
+    interact('.layer-photo, .layer-text').draggable({
+        listeners: {
+            move (event) {
+                const target = event.target;
+                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+                const rot = target.id === 'textLayer' ? document.getElementById('textRot').value : 0;
+                target.style.transform = `translate(${x}px, ${y}px) rotate(${rot}deg)`;
+                target.setAttribute('data-x', x);
+                target.setAttribute('data-y', y);
+            }
+        }
+    });
+
+    document.getElementById('addToCartBtn').addEventListener('click', function() {
+        const btn = this;
+        let priceStr = document.getElementById('priceDisplay').innerText.replace(/[^\d.]/g, '');
+
+        // --- NEW DATA CAPTURE ---
+        const selectedShape = document.querySelector('.shape-card.active')?.innerText || "Standard";
+        const dimDropdown = document.getElementById('dimSelect');
+        const selectedDim = dimDropdown.options[dimDropdown.selectedIndex]?.text || "Standard";
+        const inscriptionText = document.getElementById('textInp').value || "None";
+        // -------------------------
+
+        btn.innerText = "PREPARING...";
+        btn.disabled = true;
+
+        html2canvas(document.getElementById('stage'), {
+            useCORS: true,
+            scale: 2, // Higher scale for better cart preview quality
+            backgroundColor: null
+        }).then(canvas => {
+            const payload = {
+                product_id: "{{ product.id }}",
+                shape: selectedShape,
+                dimension: selectedDim,
+                text: inscriptionText,
+                price: priceStr,
+                custom_image_base64: canvas.toDataURL("image/jpeg", 0.7)
+            };
+
+            fetch("/add_to_cart/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    window.location.href = "/cart/";
+                } else {
+                    btn.disabled = false;
+                    btn.innerText = "Confirm Design";
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => {
+                btn.disabled = false;
+                btn.innerText = "Confirm Design";
+                console.error("Cart Error:", error);
+            });
+        });
+    });
+
+    window.onload = () => {
+        initColors();
+        const f = document.querySelector('.shape-card');
+        if(f) f.click();
+    };
+</script>
+</body>
+</html>
